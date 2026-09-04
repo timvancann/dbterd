@@ -49,8 +49,17 @@ class TestRelationshipAlgo(BaseAlgoAdapter):
     def parse_artifacts(self, manifest: Manifest, catalog: Catalog, **kwargs) -> tuple[list[Table], list[Ref]]:
         """Parse from file-based manifest/catalog artifacts."""
         # Parse Table
-        tables = self.get_tables(manifest=manifest, catalog=catalog, **kwargs)
-        tables = self.filter_tables_based_on_selection(tables=tables, **kwargs)
+        all_tables = self.get_tables(manifest=manifest, catalog=catalog, **kwargs)
+        tables = self.filter_tables_based_on_selection(tables=all_tables, **kwargs)
+
+        # Parse Dep (opt-in): needs the pre-selection set so it can collapse
+        # through intermediate nodes the selection dropped.
+        if kwargs.get("entity_dependency"):
+            tables = self.resolve_dependencies(
+                selected_tables=tables,
+                all_tables=all_tables,
+                mode=kwargs.get("entity_dependency"),
+            )
 
         # Parse Ref
         relationships = self.get_relationships(manifest=manifest, **kwargs)
@@ -68,8 +77,16 @@ class TestRelationshipAlgo(BaseAlgoAdapter):
     def parse_metadata(self, data: dict, **kwargs) -> tuple[list[Table], list[Ref]]:
         """Parse from dbt Cloud metadata API response."""
         # Parse Table
-        tables = self.get_tables_from_metadata(data=data, **kwargs)
-        tables = self.filter_tables_based_on_selection(tables=tables, **kwargs)
+        all_tables = self.get_tables_from_metadata(data=data, **kwargs)
+        tables = self.filter_tables_based_on_selection(tables=all_tables, **kwargs)
+
+        # Parse Dep (opt-in): see parse_artifacts.
+        if kwargs.get("entity_dependency"):
+            tables = self.resolve_dependencies(
+                selected_tables=tables,
+                all_tables=all_tables,
+                mode=kwargs.get("entity_dependency"),
+            )
 
         # Parse Ref
         relationships = self.get_relationships_from_metadata(data=data, **kwargs)

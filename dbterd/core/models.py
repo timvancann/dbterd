@@ -27,6 +27,13 @@ class Table:
     node_name: Optional[str] = None
     description: str = ""
     label: Optional[str] = None
+    # Raw upstream dbt node ids, straight from the manifest (`depends_on.nodes`).
+    # Populated at parse time, before selection filtering.
+    raw_depends_on: list[str] = field(default_factory=list)
+    # Upstream *entity names* after collapsing through unselected nodes. Filled
+    # in by `resolve_dependencies` and consumed only by targets that render
+    # lineage; every other target ignores it.
+    depends_on: list[str] = field(default_factory=list)
 
 
 @dataclass

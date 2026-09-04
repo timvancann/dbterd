@@ -759,6 +759,57 @@ It plays nicely with [`--entity-name-format`](#dbterd-run-entity-name-format-enf
     dbterd run --artifacts-dir ./samples/jaffle-shop --entity-group database.schema -t dbml
     ```
 
+### dbterd run --entity-dependency (-ed)
+
+Emit the dbt DAG as DBML [`Dep`](https://dbml.dbdiagram.io/) blocks, so the ERD carries data lineage alongside the entity relationships. Supported on the `dbml` target.
+
+> Default to `` (empty, the feature is off)
+
+Relationships (`Ref`) come from dbt relationship tests and describe how entities *join*. Dependencies (`Dep`) come from the dbt DAG and describe how entities are *built*. They answer different questions, and this option adds the second without touching the first.
+
+Two modes:
+
+| Mode | Behaviour |
+|---|---|
+| `collapsed` | Walk upstream through nodes the selection dropped, to the nearest *selected* ancestors. A mart reaches its sources even when staging is not selected. |
+| `direct` | Keep only immediate parents that are themselves selected. |
+
+`collapsed` is what makes the option useful on a filtered ERD: a data mart selected on its own still shows which sources it is built from, with the staging layer folded away.
+
+```
+//Deps (based on the DBT DAG, collapsed)
+Dep {
+  "source.jaffle_shop.raw_orders" -> "model.jaffle_shop.stg_orders"
+}
+Dep {
+  "model.jaffle_shop.stg_orders" -> "model.jaffle_shop.orders"
+  "model.jaffle_shop.order_items" -> "model.jaffle_shop.orders"
+}
+```
+
+DBML requires every edge inside one `Dep` block to share the same downstream table, so one block is emitted per downstream entity, holding all of that entity's upstreams.
+
+Endpoints are always entities that the ERD actually declares: the walk terminates on selected nodes only, and endpoints are filtered against the emitted set again before writing. DBML rejects a `Dep` pointing at an undeclared `Table`, which would make the whole file unparseable.
+
+To see sources in the lineage, include them with [`--resource-type`](#dbterd-run-resource-type-rt). Note that under the default [`--entity-name-format`](#dbterd-run-entity-name-format-enf) of `resource.package.model`, every table of one dbt source collapses onto a single entity name, so pair `-rt source` with a format that keeps them distinct, such as `resource.package.table`.
+
+**Examples:**
+=== "CLI"
+
+    ```bash
+    dbterd run --entity-dependency collapsed # fold unselected intermediates away
+    dbterd run --entity-dependency direct # only immediate selected parents
+    dbterd run -ed collapsed -rt model -rt source -enf resource.package.table # include sources
+    ```
+
+=== "Sample-specific examples"
+
+    ```bash
+    # Emit the jaffle-shop DAG, sources included, as DBML Dep blocks
+    dbterd run --artifacts-dir ./samples/jaffle-shop -t dbml \
+      -ed collapsed -rt model -rt source -enf resource.package.table
+    ```
+
 ### dbterd run --dbt-cloud
 
 Decide to download artifact files from dbt Cloud Job Run instead of compiling locally.

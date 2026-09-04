@@ -92,6 +92,19 @@ def common_params(func):
         show_default=True,
         type=click.STRING,
     )
+    @click.option(
+        "--entity-dependency",
+        "-ed",
+        help=(
+            "Emit DBT DAG dependencies as DBML Dep blocks. "
+            "'collapsed' walks through unselected nodes to the nearest selected ancestors; "
+            "'direct' keeps only immediate parents that are themselves selected. "
+            "Currently only dbml is supported."
+        ),
+        default=default.default_entity_dependency(),
+        show_default=True,
+        type=click.Choice(["", "collapsed", "direct"]),
+    )
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)  # pragma: no cover

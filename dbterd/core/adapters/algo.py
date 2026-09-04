@@ -307,6 +307,11 @@ class BaseAlgoAdapter(ABC):
             exposures=[x.get("exposure_name") for x in exposures if x.get("node_name") == node_name],
             description=node_description,
             label=node_label,
+            raw_depends_on=[
+                parent.get("uniqueId")
+                for parent in (model_metadata.get("node", {}).get("parents") or [])
+                if parent.get("uniqueId")
+            ],
         )
 
         # columns
@@ -371,6 +376,7 @@ class BaseAlgoAdapter(ABC):
             exposures=[x.get("exposure_name") for x in exposures if x.get("node_name") == node_name],
             description=manifest_node.description,
             label=manifest_node.meta.get("label"),
+            raw_depends_on=list(getattr(getattr(manifest_node, "depends_on", None), "nodes", None) or []),
         )
 
         if catalog_node:
@@ -483,6 +489,76 @@ class BaseAlgoAdapter(ABC):
                     )
 
         return exposures
+
+    def resolve_dependencies(
+        self,
+        selected_tables: list[Table],
+        all_tables: list[Table],
+        mode: str = "collapsed",
+    ) -> list[Table]:
+        """Fill in each selected table's `depends_on` with upstream entity names.
+
+        The dbt DAG usually routes a mart to its sources through intermediate
+        nodes (staging, intermediate models) that the selection leaves out. In
+        `collapsed` mode the walk passes straight through those, so a mart ends
+        up pointing at the nearest *selected* ancestors. In `direct` mode only
+        immediate parents that are themselves selected are kept.
+
+        Because the walk can only ever terminate on a selected node, every name
+        it produces belongs to a table that is actually emitted. Targets that
+        render dependencies (DBML `Dep`) therefore cannot emit a dangling
+        endpoint, which those formats reject outright.
+
+        Args:
+            selected_tables: Tables surviving selection; mutated in place.
+            all_tables: Every parsed table, pre-selection, needed to walk
+                through nodes the selection dropped.
+            mode: `collapsed` (walk through unselected nodes) or `direct`.
+
+        Returns:
+            The same `selected_tables` list, with `depends_on` populated.
+
+        """
+        parents_of = {t.node_name: t.raw_depends_on for t in all_tables if t.node_name}
+        name_of = {t.node_name: t.name for t in all_tables if t.node_name}
+        selected_ids = {t.node_name for t in selected_tables if t.node_name}
+
+        def nearest_selected_ancestors(node_id: str) -> list[str]:
+            """Nearest selected ancestor ids, walking up through unselected nodes."""
+            found: list[str] = []
+            seen: set[str] = {node_id}
+            queue = list(parents_of.get(node_id, []))
+            while queue:
+                current = queue.pop(0)
+                if current in seen:
+                    continue  # already handled, or a cycle in a malformed manifest
+                seen.add(current)
+                if current in selected_ids:
+                    found.append(current)
+                elif mode == "collapsed":
+                    queue.extend(parents_of.get(current, []))
+            return found
+
+        for table in selected_tables:
+            if not table.node_name:
+                continue
+            if mode == "direct":
+                upstream_ids = [p for p in table.raw_depends_on if p in selected_ids]
+            else:
+                upstream_ids = nearest_selected_ancestors(table.node_name)
+
+            # Several dbt nodes can share one entity name (with the default
+            # `resource.package.model` format every table of a source collapses
+            # onto `source.<package>.<source_name>`), so dedupe after mapping to
+            # names and drop the self-edge that collapse would otherwise create.
+            names: list[str] = []
+            for upstream_id in upstream_ids:
+                name = name_of.get(upstream_id)
+                if name and name != table.name and name not in names:
+                    names.append(name)
+            table.depends_on = sorted(names)
+
+        return selected_tables
 
     def get_table_name(self, format: str, **kwargs) -> str:
         """
