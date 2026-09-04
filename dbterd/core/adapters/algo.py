@@ -523,7 +523,7 @@ class BaseAlgoAdapter(ABC):
             seen: set[str] = {node_id}
             queue = list(parents_of.get(node_id, []))
             while queue:
-                current = queue.pop(0)
+                current = queue.pop()
                 if current in seen:
                     continue  # already handled, or a cycle in a malformed manifest
                 seen.add(current)
