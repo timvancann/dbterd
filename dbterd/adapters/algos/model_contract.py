@@ -154,11 +154,7 @@ class ModelContractAlgo(BaseAlgoAdapter):
         # Parse Dep (opt-in): needs the pre-selection set so it can collapse
         # through intermediate nodes the selection dropped.
         if kwargs.get("entity_dependency"):
-            tables = self.resolve_dependencies(
-                selected_tables=tables,
-                all_tables=all_tables,
-                mode=kwargs.get("entity_dependency"),
-            )
+            tables = self.resolve_dependencies(selected_tables=tables, all_tables=all_tables)
         tables = self._enrich_tables_with_pk_info(tables=tables, manifest=manifest)
 
         relationships = self.get_relationships(manifest=manifest, **kwargs)

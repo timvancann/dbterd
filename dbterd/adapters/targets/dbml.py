@@ -48,11 +48,10 @@ class DbmlAdapter(BaseTargetAdapter):
             builder.add_section(f"//TableGroups (based on {entity_group})")
             builder.add_section(self.format_entity_groups(tables, entity_group, quote=quote))
 
-        entity_dependency = kwargs.get("entity_dependency")
-        if entity_dependency and tables:
+        if kwargs.get("entity_dependency") and tables:
             deps = self.format_dependencies(tables, quote=quote)
             if deps:
-                builder.add_section(f"//Deps (based on the DBT DAG, {entity_dependency})")
+                builder.add_section("//Deps (based on the DBT DAG)")
                 builder.add_section(deps)
 
         return builder.build()

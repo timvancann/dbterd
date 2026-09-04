@@ -490,19 +490,14 @@ class BaseAlgoAdapter(ABC):
 
         return exposures
 
-    def resolve_dependencies(
-        self,
-        selected_tables: list[Table],
-        all_tables: list[Table],
-        mode: str = "collapsed",
-    ) -> list[Table]:
+    def resolve_dependencies(self, selected_tables: list[Table], all_tables: list[Table]) -> list[Table]:
         """Fill in each selected table's `depends_on` with upstream entity names.
 
         The dbt DAG usually routes a mart to its sources through intermediate
-        nodes (staging, intermediate models) that the selection leaves out. In
-        `collapsed` mode the walk passes straight through those, so a mart ends
-        up pointing at the nearest *selected* ancestors. In `direct` mode only
-        immediate parents that are themselves selected are kept.
+        nodes (staging, intermediate models) that the selection leaves out. The
+        walk passes straight through those, so each table ends up pointing at
+        its nearest *selected* ancestors and the graph stays connected however
+        the selection cuts through it.
 
         Because the walk can only ever terminate on a selected node, every name
         it produces belongs to a table that is actually emitted. Targets that
@@ -513,7 +508,6 @@ class BaseAlgoAdapter(ABC):
             selected_tables: Tables surviving selection; mutated in place.
             all_tables: Every parsed table, pre-selection, needed to walk
                 through nodes the selection dropped.
-            mode: `collapsed` (walk through unselected nodes) or `direct`.
 
         Returns:
             The same `selected_tables` list, with `depends_on` populated.
@@ -535,24 +529,20 @@ class BaseAlgoAdapter(ABC):
                 seen.add(current)
                 if current in selected_ids:
                     found.append(current)
-                elif mode == "collapsed":
+                else:
                     queue.extend(parents_of.get(current, []))
             return found
 
         for table in selected_tables:
             if not table.node_name:
                 continue
-            if mode == "direct":
-                upstream_ids = [p for p in table.raw_depends_on if p in selected_ids]
-            else:
-                upstream_ids = nearest_selected_ancestors(table.node_name)
 
             # Several dbt nodes can share one entity name (with the default
             # `resource.package.model` format every table of a source collapses
             # onto `source.<package>.<source_name>`), so dedupe after mapping to
             # names and drop the self-edge that collapse would otherwise create.
             names: list[str] = []
-            for upstream_id in upstream_ids:
+            for upstream_id in nearest_selected_ancestors(table.node_name):
                 name = name_of.get(upstream_id)
                 if name and name != table.name and name not in names:
                     names.append(name)

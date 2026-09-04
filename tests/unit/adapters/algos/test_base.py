@@ -140,20 +140,6 @@ class TestResolveDependencies:
             "model.p.f_order": ["source.p.raw.orders"],
         }
 
-    def test_direct_mode_keeps_only_selected_immediate_parents(self):
-        algo = TestRelationshipAlgo()
-        source = self._table("source.p.raw.orders")
-        staging = self._table("model.p.stg_orders", parents=["source.p.raw.orders"])
-        mart = self._table("model.p.f_order", parents=["model.p.stg_orders"])
-
-        result = algo.resolve_dependencies(
-            selected_tables=[source, mart],
-            all_tables=[source, staging, mart],
-            mode="direct",
-        )
-
-        assert {t.name: t.depends_on for t in result}["model.p.f_order"] == []
-
     def test_fan_in_is_deduped_and_sorted(self):
         algo = TestRelationshipAlgo()
         a = self._table("model.p.a")
@@ -161,10 +147,7 @@ class TestResolveDependencies:
         mid = self._table("model.p.mid", parents=["model.p.a", "model.p.b"])
         mart = self._table("model.p.mart", parents=["model.p.mid", "model.p.a"])
 
-        result = algo.resolve_dependencies(
-            selected_tables=[a, b, mart],
-            all_tables=[a, b, mid, mart],
-        )
+        result = algo.resolve_dependencies(selected_tables=[a, b, mart], all_tables=[a, b, mid, mart])
 
         assert {t.name: t.depends_on for t in result}["model.p.mart"] == ["model.p.a", "model.p.b"]
 
@@ -178,8 +161,7 @@ class TestResolveDependencies:
         mart = self._table("model.p.mart", parents=["source.p.raw.orders", "source.p.raw.items"])
 
         result = algo.resolve_dependencies(
-            selected_tables=[src_a, src_b, sibling, mart],
-            all_tables=[src_a, src_b, sibling, mart],
+            selected_tables=[src_a, src_b, sibling, mart], all_tables=[src_a, src_b, sibling, mart]
         )
         by_node = {t.node_name: t.depends_on for t in result}
 

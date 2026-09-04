@@ -31,11 +31,7 @@ class SemanticAlgo(BaseAlgoAdapter):
         # Parse Dep (opt-in): needs the pre-selection set so it can collapse
         # through intermediate nodes the selection dropped.
         if kwargs.get("entity_dependency"):
-            tables = self.resolve_dependencies(
-                selected_tables=tables,
-                all_tables=all_tables,
-                mode=kwargs.get("entity_dependency"),
-            )
+            tables = self.resolve_dependencies(selected_tables=tables, all_tables=all_tables)
 
         # Parse Ref
         relationships = self.get_relationships(manifest=manifest)
@@ -61,11 +57,7 @@ class SemanticAlgo(BaseAlgoAdapter):
         # Parse Dep (opt-in): needs the pre-selection set so it can collapse
         # through intermediate nodes the selection dropped.
         if kwargs.get("entity_dependency"):
-            tables = self.resolve_dependencies(
-                selected_tables=tables,
-                all_tables=all_tables,
-                mode=kwargs.get("entity_dependency"),
-            )
+            tables = self.resolve_dependencies(selected_tables=tables, all_tables=all_tables)
 
         # Parse Ref
         relationships = self.get_relationships_from_metadata(data=data_list)

@@ -210,7 +210,7 @@ Table "source.jaffle_shop.raw_supplies" {
 Ref: "model.jaffle_shop.order_items"."order_id" > "model.jaffle_shop.orders"."order_id"
 Ref: "model.jaffle_shop.orders"."customer_id" > "model.jaffle_shop.stg_customers"."customer_id"
 Ref: "model.jaffle_shop.stg_order_items"."order_id" > "model.jaffle_shop.stg_orders"."order_id"
-//Deps (based on the DBT DAG, collapsed)
+//Deps (based on the DBT DAG)
 Dep {
   "model.jaffle_shop.orders" -> "model.jaffle_shop.customers"
   "model.jaffle_shop.stg_customers" -> "model.jaffle_shop.customers"

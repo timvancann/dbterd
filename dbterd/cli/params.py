@@ -96,14 +96,13 @@ def common_params(func):
         "--entity-dependency",
         "-ed",
         help=(
-            "Emit DBT DAG dependencies as DBML Dep blocks. "
-            "'collapsed' walks through unselected nodes to the nearest selected ancestors; "
-            "'direct' keeps only immediate parents that are themselves selected. "
-            "Currently only dbml is supported."
+            "Flag to emit the dbt DAG as DBML Dep blocks. Dependencies that route through "
+            "nodes the selection dropped are collapsed onto the nearest selected ancestors, "
+            "so the graph stays connected. Currently only dbml is supported"
         ),
+        is_flag=True,
         default=default.default_entity_dependency(),
         show_default=True,
-        type=click.Choice(["", "collapsed", "direct"]),
     )
     @functools.wraps(func)
     def wrapper(*args, **kwargs):

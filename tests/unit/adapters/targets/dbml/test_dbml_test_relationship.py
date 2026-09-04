@@ -708,4 +708,4 @@ class TestDbmlFormatDependencies:
         adapter = DbmlAdapter()
         tables = [self._table("stg_a"), self._table("mart", depends_on=["stg_a"])]
         assert "//Deps" not in adapter.build_erd(tables, [])
-        assert "//Deps" in adapter.build_erd(tables, [], entity_dependency="collapsed")
+        assert "//Deps" in adapter.build_erd(tables, [], entity_dependency=True)

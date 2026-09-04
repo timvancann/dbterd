@@ -763,21 +763,12 @@ It plays nicely with [`--entity-name-format`](#dbterd-run-entity-name-format-enf
 
 Emit the dbt DAG as DBML [`Dep`](https://dbml.dbdiagram.io/) blocks, so the ERD carries data lineage alongside the entity relationships. Supported on the `dbml` target.
 
-> Default to `` (empty, the feature is off)
+> Default to `false`
 
-Relationships (`Ref`) come from dbt relationship tests and describe how entities *join*. Dependencies (`Dep`) come from the dbt DAG and describe how entities are *built*. They answer different questions, and this option adds the second without touching the first.
-
-Two modes:
-
-| Mode | Behaviour |
-|---|---|
-| `collapsed` | Walk upstream through nodes the selection dropped, to the nearest *selected* ancestors. A mart reaches its sources even when staging is not selected. |
-| `direct` | Keep only immediate parents that are themselves selected. |
-
-`collapsed` is what makes the option useful on a filtered ERD: a data mart selected on its own still shows which sources it is built from, with the staging layer folded away.
+Relationships (`Ref`) come from dbt relationship tests and describe how entities *join*. Dependencies (`Dep`) come from the dbt DAG and describe how entities are *built*. They answer different questions, and this flag adds the second without touching the first.
 
 ```
-//Deps (based on the DBT DAG, collapsed)
+//Deps (based on the DBT DAG)
 Dep {
   "source.jaffle_shop.raw_orders" -> "model.jaffle_shop.stg_orders"
 }
@@ -787,9 +778,11 @@ Dep {
 }
 ```
 
-DBML requires every edge inside one `Dep` block to share the same downstream table, so one block is emitted per downstream entity, holding all of that entity's upstreams.
+DBML requires every edge inside one `Dep` block to share the same downstream table, so one block is emitted per downstream entity, holding all of that entity's upstreams. A table can appear as an upstream in as many blocks as it has children.
 
-Endpoints are always entities that the ERD actually declares: the walk terminates on selected nodes only, and endpoints are filtered against the emitted set again before writing. DBML rejects a `Dep` pointing at an undeclared `Table`, which would make the whole file unparseable.
+**Dependencies stay connected across a selection.** When [`--select`](#dbterd-run-select-s) or [`--exclude`](#dbterd-run-exclude-e) drops the nodes in between, the walk continues through them to the nearest ancestors that *are* selected. Select your marts and your sources without the staging layer, and each mart still points at the sources it is built from. With no selection applied there is nothing to walk through, so the output is exactly the literal dbt DAG.
+
+That also keeps the file valid: DBML rejects a `Dep` pointing at a `Table` the file does not declare, which makes the whole document unparseable. Because the walk can only ever terminate on a selected node, every endpoint is an entity the ERD actually declares.
 
 To see sources in the lineage, include them with [`--resource-type`](#dbterd-run-resource-type-rt). Note that under the default [`--entity-name-format`](#dbterd-run-entity-name-format-enf) of `resource.package.model`, every table of one dbt source collapses onto a single entity name, so pair `-rt source` with a format that keeps them distinct, such as `resource.package.table`.
 
@@ -797,9 +790,8 @@ To see sources in the lineage, include them with [`--resource-type`](#dbterd-run
 === "CLI"
 
     ```bash
-    dbterd run --entity-dependency collapsed # fold unselected intermediates away
-    dbterd run --entity-dependency direct # only immediate selected parents
-    dbterd run -ed collapsed -rt model -rt source -enf resource.package.table # include sources
+    dbterd run --entity-dependency # emit the dbt DAG as Dep blocks
+    dbterd run -ed -rt model -rt source -enf resource.package.table # include sources
     ```
 
 === "Sample-specific examples"
@@ -807,7 +799,7 @@ To see sources in the lineage, include them with [`--resource-type`](#dbterd-run
     ```bash
     # Emit the jaffle-shop DAG, sources included, as DBML Dep blocks
     dbterd run --artifacts-dir ./samples/jaffle-shop -t dbml \
-      -ed collapsed -rt model -rt source -enf resource.package.table
+      -ed -rt model -rt source -enf resource.package.table
     ```
 
 ### dbterd run --dbt-cloud
