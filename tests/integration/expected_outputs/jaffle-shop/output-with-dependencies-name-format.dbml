@@ -1,6 +1,6 @@
 //Tables (based on the selection criteria)
 //--configured at schema: demo.public
-Table "model.jaffle_shop.customers" {
+Table "public.customers" {
   "customer_id" "text" [note: "The unique key of the orders mart."]
   "customer_name" "text" [note: "Customers' full name."]
   "count_lifetime_orders" "bigint" [note: "Total number of orders a customer has ever placed."]
@@ -14,7 +14,7 @@ Table "model.jaffle_shop.customers" {
   Note: "Customer overview data mart, offering key details for each unique customer. One row per customer."
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.locations" {
+Table "public.locations" {
   "location_id" "text"
   "location_name" "text"
   "tax_rate" "double precision"
@@ -23,13 +23,13 @@ Table "model.jaffle_shop.locations" {
   Note: ""
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.metricflow_time_spine" {
+Table "public.metricflow_time_spine" {
   "date_day" "date"
 
   Note: ""
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.order_items" {
+Table "public.order_items" {
   "order_item_id" "text"
   "order_id" "text"
   "product_id" "text"
@@ -43,7 +43,7 @@ Table "model.jaffle_shop.order_items" {
   Note: ""
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.orders" {
+Table "public.orders" {
   "order_id" "text" [note: "The unique key of the orders mart."]
   "location_id" "text"
   "customer_id" "text" [note: "The foreign key relating to the customer who placed the order."]
@@ -66,7 +66,7 @@ Table "model.jaffle_shop.orders" {
   Note: "Order overview data mart, offering key details for each order inlcluding if it's a customer's first order and a food vs. drink item breakdown. One row per order."
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.products" {
+Table "public.products" {
   "product_id" "text"
   "product_name" "text"
   "product_type" "text"
@@ -78,14 +78,14 @@ Table "model.jaffle_shop.products" {
   Note: ""
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.stg_customers" {
+Table "public.stg_customers" {
   "customer_id" "text" [note: "The unique key for each customer."]
   "customer_name" "text"
 
   Note: "Customer data with basic cleaning and transformation applied, one row per customer."
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.stg_locations" {
+Table "public.stg_locations" {
   "location_id" "text" [note: "The unique key for each location."]
   "location_name" "text"
   "tax_rate" "double precision"
@@ -94,7 +94,7 @@ Table "model.jaffle_shop.stg_locations" {
   Note: "List of open locations with basic cleaning and transformation applied, one row per location."
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.stg_order_items" {
+Table "public.stg_order_items" {
   "order_item_id" "text" [note: "The unique key for each order item."]
   "order_id" "text" [note: "The corresponding order each order item belongs to"]
   "product_id" "text"
@@ -102,7 +102,7 @@ Table "model.jaffle_shop.stg_order_items" {
   Note: "Individual food and drink items that make up our orders, one row per item."
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.stg_orders" {
+Table "public.stg_orders" {
   "order_id" "text" [note: "The unique key for each order."]
   "location_id" "text"
   "customer_id" "text"
@@ -117,7 +117,7 @@ Table "model.jaffle_shop.stg_orders" {
   Note: "Order data with basic cleaning and transformation applied, one row per order."
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.stg_products" {
+Table "public.stg_products" {
   "product_id" "text" [note: "The unique key for each product."]
   "product_name" "text"
   "product_type" "text"
@@ -129,7 +129,7 @@ Table "model.jaffle_shop.stg_products" {
   Note: "Product (food and drink items that can be ordered) data with basic cleaning and transformation applied, one row per product."
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.stg_supplies" {
+Table "public.stg_supplies" {
   "supply_uuid" "text" [note: "The unique key of our supplies per cost."]
   "supply_id" "text"
   "product_id" "text"
@@ -140,7 +140,7 @@ Table "model.jaffle_shop.stg_supplies" {
   Note: "List of our supply expenses data with basic cleaning and transformation applied.\nOne row per supply cost, not per supply. As supply costs fluctuate they receive a new row with a new UUID. Thus there can be multiple rows per supply_id.\n"
 }
 //--configured at schema: demo.public
-Table "model.jaffle_shop.supplies" {
+Table "public.supplies" {
   "supply_uuid" "text"
   "supply_id" "text"
   "product_id" "text"
@@ -150,105 +150,31 @@ Table "model.jaffle_shop.supplies" {
 
   Note: ""
 }
-//--configured at schema: demo.raw
-Table "source.jaffle_shop.raw_customers" {
-  "id" "text"
-  "name" "text"
-
-  Note: "One record per person who has purchased one or more items"
-}
-//--configured at schema: demo.raw
-Table "source.jaffle_shop.raw_items" {
-  "id" "text"
-  "order_id" "text"
-  "sku" "text"
-
-  Note: "Items included in an order"
-}
-//--configured at schema: demo.raw
-Table "source.jaffle_shop.raw_orders" {
-  "id" "text"
-  "customer" "text"
-  "ordered_at" "timestamp without time zone"
-  "store_id" "text"
-  "subtotal" "integer"
-  "tax_paid" "integer"
-  "order_total" "integer"
-
-  Note: "One record per order (consisting of one or more order items)"
-}
-//--configured at schema: demo.raw
-Table "source.jaffle_shop.raw_products" {
-  "sku" "text"
-  "name" "text"
-  "type" "text"
-  "price" "integer"
-  "description" "text"
-
-  Note: "One record per SKU for items sold in stores"
-}
-//--configured at schema: demo.raw
-Table "source.jaffle_shop.raw_stores" {
-  "id" "text"
-  "name" "text"
-  "opened_at" "timestamp without time zone"
-  "tax_rate" "double precision"
-
-  Note: ""
-}
-//--configured at schema: demo.raw
-Table "source.jaffle_shop.raw_supplies" {
-  "id" "text"
-  "name" "text"
-  "cost" "integer"
-  "perishable" "boolean"
-  "sku" "text"
-
-  Note: "One record per supply per SKU of items sold in stores"
-}
 //Refs (based on the DBT Relationship Tests)
-Ref: "model.jaffle_shop.order_items"."order_id" > "model.jaffle_shop.orders"."order_id"
-Ref: "model.jaffle_shop.orders"."customer_id" > "model.jaffle_shop.stg_customers"."customer_id"
-Ref: "model.jaffle_shop.stg_order_items"."order_id" > "model.jaffle_shop.stg_orders"."order_id"
+Ref: "public.order_items"."order_id" > "public.orders"."order_id"
+Ref: "public.orders"."customer_id" > "public.stg_customers"."customer_id"
+Ref: "public.stg_order_items"."order_id" > "public.stg_orders"."order_id"
 //Deps (based on the DBT DAG)
 Dep {
-  "model.jaffle_shop.orders" -> "model.jaffle_shop.customers"
-  "model.jaffle_shop.stg_customers" -> "model.jaffle_shop.customers"
+  "public.orders" -> "public.customers"
+  "public.stg_customers" -> "public.customers"
 }
 Dep {
-  "model.jaffle_shop.stg_locations" -> "model.jaffle_shop.locations"
+  "public.stg_locations" -> "public.locations"
 }
 Dep {
-  "model.jaffle_shop.stg_order_items" -> "model.jaffle_shop.order_items"
-  "model.jaffle_shop.stg_orders" -> "model.jaffle_shop.order_items"
-  "model.jaffle_shop.stg_products" -> "model.jaffle_shop.order_items"
-  "model.jaffle_shop.stg_supplies" -> "model.jaffle_shop.order_items"
+  "public.stg_order_items" -> "public.order_items"
+  "public.stg_orders" -> "public.order_items"
+  "public.stg_products" -> "public.order_items"
+  "public.stg_supplies" -> "public.order_items"
 }
 Dep {
-  "model.jaffle_shop.order_items" -> "model.jaffle_shop.orders"
-  "model.jaffle_shop.stg_orders" -> "model.jaffle_shop.orders"
+  "public.order_items" -> "public.orders"
+  "public.stg_orders" -> "public.orders"
 }
 Dep {
-  "model.jaffle_shop.stg_products" -> "model.jaffle_shop.products"
+  "public.stg_products" -> "public.products"
 }
 Dep {
-  "source.jaffle_shop.raw_customers" -> "model.jaffle_shop.stg_customers"
-}
-Dep {
-  "source.jaffle_shop.raw_stores" -> "model.jaffle_shop.stg_locations"
-}
-Dep {
-  "source.jaffle_shop.raw_items" -> "model.jaffle_shop.stg_order_items"
-}
-Dep {
-  "source.jaffle_shop.raw_orders" -> "model.jaffle_shop.stg_orders"
-}
-Dep {
-  "source.jaffle_shop.raw_products" -> "model.jaffle_shop.stg_products"
-}
-Dep {
-  "source.jaffle_shop.raw_supplies" -> "model.jaffle_shop.stg_supplies"
-}
-Dep {
-  "model.jaffle_shop.stg_supplies" -> "model.jaffle_shop.supplies"
+  "public.stg_supplies" -> "public.supplies"
 }

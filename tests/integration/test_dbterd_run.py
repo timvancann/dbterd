@@ -57,6 +57,13 @@ class TestDbterdRun:
                 ],
                 "output-with-dependencies.dbml",
             ),
+            (
+                "jaffle-shop",
+                "dbml",
+                "test_relationship",
+                ["--with-dependencies", "--entity-name-format", "schema.table"],
+                "output-with-dependencies-name-format.dbml",
+            ),
             ("jaffle-shop", "mermaid", "test_relationship", [], "output.md"),
             ("jaffle-shop", "json", "test_relationship", [], "output.json"),
             (
