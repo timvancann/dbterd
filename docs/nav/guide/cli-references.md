@@ -759,7 +759,7 @@ It plays nicely with [`--entity-name-format`](#dbterd-run-entity-name-format-enf
     dbterd run --artifacts-dir ./samples/jaffle-shop --entity-group database.schema -t dbml
     ```
 
-### dbterd run --entity-dependency (-ed)
+### dbterd run --with-dependencies (-wd)
 
 Emit the dbt DAG as DBML [`Dep`](https://dbml.dbdiagram.io/) blocks, so the ERD carries data lineage alongside the entity relationships. Supported on the `dbml` target.
 
@@ -790,8 +790,8 @@ To see sources in the lineage, include them with [`--resource-type`](#dbterd-run
 === "CLI"
 
     ```bash
-    dbterd run --entity-dependency # emit the dbt DAG as Dep blocks
-    dbterd run -ed -rt model -rt source -enf resource.package.table # include sources
+    dbterd run --with-dependencies # emit the dbt DAG as Dep blocks
+    dbterd run -wd -rt model -rt source -enf resource.package.table # include sources
     ```
 
 === "Sample-specific examples"
@@ -799,7 +799,7 @@ To see sources in the lineage, include them with [`--resource-type`](#dbterd-run
     ```bash
     # Emit the jaffle-shop DAG, sources included, as DBML Dep blocks
     dbterd run --artifacts-dir ./samples/jaffle-shop -t dbml \
-      -ed -rt model -rt source -enf resource.package.table
+      -wd -rt model -rt source -enf resource.package.table
     ```
 
 ### dbterd run --dbt-cloud

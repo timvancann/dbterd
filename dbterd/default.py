@@ -45,8 +45,8 @@ def default_entity_group() -> str:
     return os.environ.get("DBTERD_ENTITY_GROUP", "")
 
 
-def default_entity_dependency() -> bool:
-    return os.environ.get("DBTERD_ENTITY_DEPENDENCY", "false").lower() in ["true", "yes", "1"]
+def default_with_dependencies() -> bool:
+    return os.environ.get("DBTERD_WITH_DEPENDENCIES", "false").lower() in ["true", "yes", "1"]
 
 
 def default_dbt_project_dir() -> str:

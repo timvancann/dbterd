@@ -87,7 +87,7 @@ entity-name-format: schema.table
 omit-entity-name-quotes: false
 omit-columns: false
 entity-group: database.schema
-entity-dependency: true
+with-dependencies: true
 
 # dbt Artifact Settings
 artifacts-dir: ./target
@@ -125,7 +125,7 @@ entity-name-format = "schema.table"
 omit-entity-name-quotes = false
 omit-columns = false
 entity-group = "database.schema"
-entity-dependency = true
+with-dependencies = true
 
 artifacts-dir = "./target"
 # Parser relaxation policies (omit for all; empty list for strict)
@@ -221,7 +221,7 @@ All CLI parameters can be configured in files. Here's the complete reference:
 | `omit-entity-name-quotes` | boolean | `false` | Remove quotes from entity names (dbml only) |
 | `omit-columns` | boolean | `false` | Hide columns in diagram (mermaid only) |
 | `entity-group` | string | `` (empty) | Group entities by dot-separated `Table` attribute names, e.g. `database.schema` — DBML `TableGroup` blocks (dbml) or a `groups` array (json) |
-| `entity-dependency` | boolean | `false` | Emit the dbt DAG as DBML `Dep` blocks, collapsing through nodes the selection dropped (dbml only) |
+| `with-dependencies` | boolean | `false` | Emit the dbt DAG as DBML `Dep` blocks, collapsing through nodes the selection dropped (dbml only) |
 
 ### Artifact Settings
 

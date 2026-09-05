@@ -57,7 +57,7 @@ omit-entity-name-quotes: {default_omit_entity_name_quotes}
 entity-group: {default_entity_group}
 
 # Emit the dbt DAG as DBML Dep blocks (dbml only)
-entity-dependency: {default_entity_dependency}
+with-dependencies: {default_with_dependencies}
 
 # Display Options
 # ---------------

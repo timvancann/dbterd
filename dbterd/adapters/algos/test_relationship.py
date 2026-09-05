@@ -54,7 +54,7 @@ class TestRelationshipAlgo(BaseAlgoAdapter):
 
         # Parse Dep (opt-in): needs the pre-selection set so it can collapse
         # through intermediate nodes the selection dropped.
-        if kwargs.get("entity_dependency"):
+        if kwargs.get("with_dependencies"):
             tables = self.resolve_dependencies(selected_tables=tables, all_tables=all_tables)
 
         # Parse Ref
@@ -77,7 +77,7 @@ class TestRelationshipAlgo(BaseAlgoAdapter):
         tables = self.filter_tables_based_on_selection(tables=all_tables, **kwargs)
 
         # Parse Dep (opt-in): see parse_artifacts.
-        if kwargs.get("entity_dependency"):
+        if kwargs.get("with_dependencies"):
             tables = self.resolve_dependencies(selected_tables=tables, all_tables=all_tables)
 
         # Parse Ref
