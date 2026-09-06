@@ -232,6 +232,17 @@ class BaseAlgoAdapter(ABC):
             )
         ]
 
+    def select_tables(self, tables: list[Table], **kwargs) -> list[Table]:
+        """Apply the selection rules, then resolve dependencies when `with_dependencies` is set.
+
+        Dependency resolution needs the pre-selection set so it can collapse
+        through intermediate nodes the selection dropped.
+        """
+        selected = self.filter_tables_based_on_selection(tables=tables, **kwargs)
+        if kwargs.get("with_dependencies"):
+            return self.resolve_dependencies(selected_tables=selected, all_tables=tables)
+        return selected
+
     def enrich_tables_from_relationships(self, tables: list[Table], relationships: list[Ref]) -> list[Table]:
         """
         Fulfill columns in Table due to `select *`.
