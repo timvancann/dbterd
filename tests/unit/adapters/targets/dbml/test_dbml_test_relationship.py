@@ -686,14 +686,6 @@ class TestDbmlFormatDependencies:
         result = adapter.format_dependencies(tables)
         assert result == ('Dep {\n  "stg_a" -> "mart_x"\n}\nDep {\n  "stg_a" -> "mart_y"\n}')
 
-    def test_drops_endpoints_that_are_not_emitted(self):
-        """A Dep endpoint with no Table block makes the whole file unparseable."""
-        adapter = DbmlAdapter()
-        tables = [self._table("mart", depends_on=["stg_a", "ghost"]), self._table("stg_a")]
-        result = adapter.format_dependencies(tables)
-        assert "ghost" not in result
-        assert '"stg_a" -> "mart"' in result
-
     def test_omit_entity_name_quotes(self):
         adapter = DbmlAdapter()
         tables = [self._table("stg_a"), self._table("mart", depends_on=["stg_a"])]

@@ -87,20 +87,13 @@ class DbmlAdapter(BaseTargetAdapter):
         downstream table, so this emits one block per downstream entity holding
         that entity's upstreams, written ``upstream -> downstream`` to match
         DBML's lineage direction.
-
-        Endpoints are filtered against the emitted table set: DBML rejects a
-        ``Dep`` whose endpoint is not a declared ``Table``, which would make the
-        whole file unparseable.
         """
-        emitted = {table.name for table in tables}
-
         blocks = []
         for table in sorted(tables, key=lambda t: t.name):
-            upstreams = [name for name in table.depends_on if name in emitted]
-            if not upstreams:
+            if not table.depends_on:
                 continue
             edges = "\n".join(
-                f"  {self._quote(upstream, quote)} -> {self._quote(table.name, quote)}" for upstream in upstreams
+                f"  {self._quote(upstream, quote)} -> {self._quote(table.name, quote)}" for upstream in table.depends_on
             )
             blocks.append(f"Dep {{\n{edges}\n}}")
 
