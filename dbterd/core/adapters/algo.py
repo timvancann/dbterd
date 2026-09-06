@@ -387,6 +387,7 @@ class BaseAlgoAdapter(ABC):
             exposures=[x.get("exposure_name") for x in exposures if x.get("node_name") == node_name],
             description=manifest_node.description,
             label=manifest_node.meta.get("label"),
+            # Sources have no `depends_on`; seeds have one without `nodes`.
             raw_depends_on=list(getattr(getattr(manifest_node, "depends_on", None), "nodes", None) or []),
         )
 
@@ -548,16 +549,11 @@ class BaseAlgoAdapter(ABC):
             if not table.node_name:
                 continue
 
-            # Several dbt nodes can share one entity name (with the default
-            # `resource.package.model` format every table of a source collapses
-            # onto `source.<package>.<source_name>`), so dedupe after mapping to
-            # names and drop the self-edge that collapse would otherwise create.
-            names: list[str] = []
-            for upstream_id in nearest_selected_ancestors(table.node_name):
-                name = name_of.get(upstream_id)
-                if name and name != table.name and name not in names:
-                    names.append(name)
-            table.depends_on = sorted(names)
+            # Several dbt nodes can share one entity name (every table of a source
+            # collapses onto `source.<package>.<source_name>` by default), so dedupe
+            # by name and drop the self-edge that collapse would otherwise create.
+            upstream_ids = nearest_selected_ancestors(table.node_name)
+            table.depends_on = sorted({name_of[i] for i in upstream_ids if i in name_of} - {table.name})
 
         return selected_tables
 
